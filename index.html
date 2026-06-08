@@ -185,19 +185,24 @@ img{display:block}
 .succ-banner div{font-size:13px;color:var(--green-text);font-weight:500;line-height:1.5}
 .succ-banner small{font-size:11px;color:var(--green-text);opacity:.8}
 
-/* ── Config page ─────────────────────────── */
-.cfg-box{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px}
-.cfg-box h3{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:12px;text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;gap:7px}
-.cfg-input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:14px;font-family:var(--font);color:var(--text);background:var(--surface);outline:none;transition:border .15s;margin-bottom:8px}
-.cfg-input:focus{border-color:var(--navy);background:var(--white)}
-.cfg-save-btn{width:100%;padding:13px;border-radius:var(--radius);background:var(--navy);color:#fff;border:none;font-size:14px;font-weight:600;font-family:var(--font);cursor:pointer;transition:background .15s;display:flex;align-items:center;justify-content:center;gap:8px}
-.cfg-save-btn:active{background:var(--navy-dark)}
-.cfg-note{font-size:12px;color:var(--text3);line-height:1.6;margin-top:10px;padding:10px 12px;background:var(--surface);border-radius:var(--radius-sm);border-left:3px solid var(--navy)}
-.cfg-note code{font-family:var(--mono);font-size:11px;background:#e8eaf6;padding:1px 5px;border-radius:4px}
-.step{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
-.step-num{width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.step-txt{font-size:13px;color:var(--text);line-height:1.6}
-.step-txt strong{font-weight:600}
+/* ── Tela de Login ───────────────────────── */
+.login-overlay{position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:500;padding:24px}
+.login-overlay.hidden{display:none}
+.login-box{background:var(--white);border-radius:24px;padding:32px 28px;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(0,0,0,.35)}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo i{font-size:48px;color:var(--navy);display:block;margin-bottom:8px}
+.login-logo h2{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-.5px}
+.login-logo p{font-size:13px;color:var(--text2);margin-top:4px}
+.login-field{margin-bottom:14px}
+.login-field label{font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
+.login-field input{width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:15px;font-family:var(--font);color:var(--text);background:var(--surface);outline:none;transition:border .15s}
+.login-field input:focus{border-color:var(--navy);background:var(--white)}
+.login-btn{width:100%;padding:15px;border-radius:var(--radius);background:var(--navy);color:#fff;border:none;font-size:15px;font-weight:700;font-family:var(--font);cursor:pointer;transition:background .15s;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:9px;letter-spacing:-.2px}
+.login-btn:active{background:var(--navy-dark)}
+.login-btn:disabled{opacity:.6;cursor:not-allowed}
+.login-err{font-size:13px;color:var(--red);font-weight:600;text-align:center;margin-top:12px;min-height:20px}
+.logout-btn{background:none;border:1.5px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);padding:4px 12px;border-radius:var(--radius-pill);font-size:11px;font-weight:600;font-family:var(--font);cursor:pointer;transition:all .15s}
+.logout-btn:active{background:rgba(255,255,255,.15)}
 
 .pcbadge{background:var(--blue-bg);color:var(--blue-text);font-size:10px;font-weight:600;padding:2px 7px;border-radius:var(--radius-pill)}
 .todaytag{background:var(--blue-bg);color:var(--blue-text);font-size:10px;font-weight:600;padding:2px 7px;border-radius:var(--radius-pill)}
@@ -209,6 +214,34 @@ img{display:block}
 </style>
 </head>
 <body>
+
+<!-- Login Overlay -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">
+      <i class="ti ti-building-skyscraper" aria-hidden="true"></i>
+      <h2>Torre Olimpo</h2>
+      <p>Acompanhamento de obras</p>
+    </div>
+    <div class="login-field">
+      <label>Usuário</label>
+      <input type="text" id="ln-user" placeholder="Seu usuário" autocomplete="username" autocapitalize="none">
+    </div>
+    <div class="login-field">
+      <label>Senha</label>
+      <input type="password" id="ln-pass" placeholder="Sua senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-field">
+      <label>Obra / Projeto</label>
+      <input type="text" id="ln-obra" placeholder="Ex: Torre Olimpo — Bloco A" autocomplete="off">
+    </div>
+    <button class="login-btn" id="ln-btn" onclick="doLogin()">
+      <i class="ti ti-login" aria-hidden="true"></i> Entrar
+    </button>
+    <div class="login-err" id="ln-err"></div>
+  </div>
+</div>
+
 <div class="app">
 
   <!-- Topbar -->
@@ -217,9 +250,12 @@ img{display:block}
       <i class="ti ti-building" style="font-size:20px;opacity:.8" aria-hidden="true"></i>
       <div style="flex:1">
         <h1>Torre Olimpo</h1>
-        <div class="sub">Gestão de serviços</div>
+        <div class="sub" id="topbar-sub">Gestão de serviços</div>
       </div>
       <span class="dt" id="today-label"></span>
+      <button class="logout-btn" onclick="doLogout()" title="Sair">
+        <i class="ti ti-logout" style="font-size:12px;vertical-align:-1px" aria-hidden="true"></i> Sair
+      </button>
     </div>
   </div>
 
@@ -295,46 +331,7 @@ img{display:block}
       <div id="preview-area"></div>
     </div>
 
-    <!-- Config -->
-    <div class="page" id="page-config">
-      <div class="cfg-box">
-        <h3><i class="ti ti-plug-connected" aria-hidden="true"></i>Conexão com o Google Sheets</h3>
-        <div class="cfg-note">
-          <div class="step"><div class="step-num">1</div><div class="step-txt">Abra a planilha <strong>torre-olimpo</strong> no navegador e copie o <strong>ID</strong> da URL:<br><code>docs.google.com/spreadsheets/d/<strong>ID_AQUI</strong>/edit</code></div></div>
-          <div class="step"><div class="step-num">2</div><div class="step-txt">Acesse <strong>script.google.com</strong>, crie um projeto <em>standalone</em>, cole o <code>Code.gs</code>, substitua <code>COLE_O_ID_DA_PLANILHA_AQUI</code> pelo ID e salve</div></div>
-          <div class="step"><div class="step-num">3</div><div class="step-txt">Clique em <strong>Implantar → Novo deploy → Aplicativo da Web</strong><br>• Executar como: <strong>Eu</strong><br>• Acesso: <strong>Qualquer pessoa</strong></div></div>
-          <div class="step"><div class="step-num">4</div><div class="step-txt">Cole o ID da planilha e a URL do deploy nos campos abaixo</div></div>
-        </div>
-        <div class="mfield" style="margin-top:14px">
-          <label>ID da planilha torre-olimpo</label>
-          <input type="text" class="cfg-input" id="cfg-sheet-id" placeholder="Ex: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" style="margin-bottom:0;font-family:var(--mono);font-size:12px">
-        </div>
-        <div class="mfield" style="margin-top:8px">
-          <label>URL do Apps Script (deploy /exec)</label>
-          <input type="text" class="cfg-input" id="cfg-url" placeholder="https://script.google.com/macros/s/.../exec" style="margin-bottom:0;font-size:12px">
-        </div>
-        <div class="mfield" style="margin-top:8px">
-          <label>Seu nome (aparece nos registros)</label>
-          <input type="text" class="cfg-input" id="cfg-user" placeholder="Ex: João Silva" style="margin-bottom:0">
-        </div>
-        <button class="cfg-save-btn" onclick="saveConfig()">
-          <i class="ti ti-device-floppy" aria-hidden="true"></i> Salvar e conectar
-        </button>
-      </div>
-      <div class="cfg-box">
-        <h3><i class="ti ti-table" aria-hidden="true"></i>Planilha conectada</h3>
-        <div id="sheet-link-area" style="font-size:13px;color:var(--text2);line-height:1.7">
-          Nenhuma planilha configurada ainda.
-        </div>
-      </div>
-      <div class="cfg-box">
-        <h3><i class="ti ti-refresh" aria-hidden="true"></i>Sincronização</h3>
-        <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">Os dados são salvos automaticamente no Google Sheets a cada atualização. Clique abaixo para recarregar todos os dados.</p>
-        <button class="cfg-save-btn" onclick="loadFromSheets(true)" style="background:#37474F">
-          <i class="ti ti-cloud-download" aria-hidden="true"></i> Recarregar dados do Sheets
-        </button>
-      </div>
-    </div>
+    <!-- Config removido — configuração feita diretamente no código (GAS_URL) e no Drive -->
   </div>
 
   <!-- Bottom Nav -->
@@ -355,9 +352,6 @@ img{display:block}
     </button>
     <button class="bn-btn" onclick="showPage('relatorio')" id="tab-relatorio">
       <i class="ti ti-file-text" aria-hidden="true"></i>Relatório
-    </button>
-    <button class="bn-btn" onclick="showPage('config')" id="tab-config">
-      <i class="ti ti-settings" aria-hidden="true"></i>Config
     </button>
   </div>
 
@@ -412,11 +406,82 @@ img{display:block}
 <script>
 
 // ═══════════════════════════════════════════════════════════════
-//  CONFIGURAÇÃO — cole sua URL do Apps Script aqui ou via Config
+//  CONFIGURAÇÃO FIXA — definida na hospedagem e no Drive
 // ═══════════════════════════════════════════════════════════════
-let GAS_URL   = localStorage.getItem('gasUrl')    || 'https://script.google.com/macros/s/AKfycbxnBi8VPJOOJ-ASA1QntqVlAgxUzfO5N92u6AARZUBzO-YskOakWyhfL16yRn_hjRnX/exec';
-let SHEET_ID  = localStorage.getItem('sheetId')  || '16W9U6SpW5J-b9A_qjP8mWvDVWezhGvHGS_4mhNTv-q8';
-let CFG_USER  = localStorage.getItem('gasUser')  || '';
+const GAS_URL  = 'https://script.google.com/macros/s/AKfycbxjqYBR5TMxsnbDbunO8mk1-560tCRL1njrNGHuJXEU4LHrcCqlTcmJmj-d4zBxuinIvg/exec';
+const SHEET_ID = '1gUuKMISwMk2AKMn6S7jS2bZaNs6_g867noSWs1Ogw-U';
+
+// ── Login / Sessão ────────────────────────────────────────────
+// Sessão salva no localStorage (permanente no dispositivo)
+let SESSION = JSON.parse(localStorage.getItem('to_session') || 'null');
+let CFG_USER = SESSION ? SESSION.usuario : '';
+
+function checkSession(){
+  if(SESSION){
+    document.getElementById('login-overlay').classList.add('hidden');
+    // Atualiza subtítulo da topbar com usuário e obra
+    const sub = document.getElementById('topbar-sub');
+    if(sub) sub.textContent = SESSION.obra ? SESSION.obra + ' · ' + SESSION.usuario : SESSION.usuario;
+    return true;
+  } else {
+    document.getElementById('login-overlay').classList.remove('hidden');
+    return false;
+  }
+}
+
+async function doLogin(){
+  const usuario = document.getElementById('ln-user').value.trim();
+  const senha   = document.getElementById('ln-pass').value;
+  const obra    = document.getElementById('ln-obra').value.trim();
+  const err     = document.getElementById('ln-err');
+  const btn     = document.getElementById('ln-btn');
+
+  if(!usuario || !senha){ err.textContent='Preencha usuário e senha.'; return; }
+  if(!obra){ err.textContent='Informe a obra / projeto.'; return; }
+
+  err.textContent='';
+  btn.disabled=true;
+  btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin .8s linear infinite" aria-hidden="true"></i> Verificando...';
+
+  try {
+    const res = await fetch(GAS_URL + '?acao=login&usuario=' + encodeURIComponent(usuario) + '&senha=' + encodeURIComponent(senha));
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+
+    if(data.ok){
+      SESSION = { usuario: data.data.nome || usuario, obra, loginEm: new Date().toISOString() };
+      CFG_USER = SESSION.usuario;
+      localStorage.setItem('to_session', JSON.stringify(SESSION));
+      checkSession();
+      // Registra acesso na planilha
+      apiPost({ acao:'registrarAcesso', usuario: SESSION.usuario, obra, acao2:'login' }).catch(()=>{});
+      loadFromSheets();
+    } else {
+      err.textContent = data.erro || 'Usuário ou senha incorretos.';
+    }
+  } catch(ex){
+    err.textContent = 'Erro de conexão. Tente novamente.';
+    console.error(ex);
+  }
+
+  btn.disabled=false;
+  btn.innerHTML='<i class="ti ti-login" aria-hidden="true"></i> Entrar';
+}
+
+function doLogout(){
+  if(!confirm('Deseja sair?')) return;
+  localStorage.removeItem('to_session');
+  SESSION=null; CFG_USER='';
+  document.getElementById('login-overlay').classList.remove('hidden');
+  // Limpa campos para não expor dados
+  document.getElementById('ln-pass').value='';
+  document.getElementById('ln-err').textContent='';
+}
+
+// Estilo do spinner inline
+const _sty=document.createElement('style');
+_sty.textContent='@keyframes spin{to{transform:rotate(360deg)}}';
+document.head.appendChild(_sty);
 
 // ── Dados estáticos (fallback / default) ─────────────────────
 const DEFAULT_ANDARES = ['Lobby','3° Andar','4° Andar','5° Andar','6° Andar','7° Andar','8° Andar','9° Andar','10° Andar','11° Andar','12° Andar','13° Andar','14° Andar','15° Andar','16° Andar','17° Andar','18° Andar','19° Andar','20° Andar','21° Andar','22° Andar','23° Andar','24° Andar','25° Andar','26° Andar','27° Andar','28° Andar','29° Andar'];
@@ -503,7 +568,7 @@ async function apiPost(body){
 
 // ── Carrega tudo em uma única chamada GET ─────────────────────
 async function loadFromSheets(forceNotify=false){
-  if(!GAS_URL){ setSyncBar('error','Sem conexão — configure a URL em ⚙ Config'); return; }
+  if(!GAS_URL){ setSyncBar('error','URL do Apps Script não configurada'); return; }
   setSyncBar('syncing','Carregando dados do Sheets...');
   try {
     const res = await apiGet('tudo');
@@ -610,42 +675,6 @@ async function deletePhotoRemote(a, e, idx){
   await apiPost({ acao: 'excluirFoto', Andar: a, Etapa: e, indice: idx });
 }
 
-// ── Config page ───────────────────────────────────────────────
-function saveConfig(){
-  const url     = document.getElementById('cfg-url').value.trim();
-  const sheetId = document.getElementById('cfg-sheet-id').value.trim();
-  const user    = document.getElementById('cfg-user').value.trim();
-  if(!url)     { showToast('Cole a URL do Apps Script!','error'); return; }
-  if(!sheetId) { showToast('Cole o ID da planilha!','error'); return; }
-  GAS_URL  = url;
-  SHEET_ID = sheetId;
-  CFG_USER = user;
-  localStorage.setItem('gasUrl',   url);
-  localStorage.setItem('sheetId',  sheetId);
-  localStorage.setItem('gasUser',  user);
-  updateSheetLinkArea();
-  showToast('Configuração salva! Conectando...');
-  loadFromSheets();
-}
-
-function updateSheetLinkArea(){
-  const el = document.getElementById('sheet-link-area');
-  if(!el) return;
-  if(!SHEET_ID){
-    el.innerHTML = 'Nenhuma planilha configurada ainda.';
-    return;
-  }
-  const url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit';
-  el.innerHTML = '<div style="display:flex;flex-direction:column;gap:8px">'
-    + '<div style="display:flex;align-items:center;gap:8px">'
-    + '<i class="ti ti-table" style="color:var(--navy);font-size:18px" aria-hidden="true"></i>'
-    + '<strong style="color:var(--text)">torre-olimpo</strong>'
-    + '</div>'
-    + '<div style="font-family:var(--mono);font-size:11px;color:var(--text3);word-break:break-all;background:var(--surface);padding:7px 10px;border-radius:8px">' + SHEET_ID + '</div>'
-    + '<a href="' + url + '" target="_blank" style="display:inline-flex;align-items:center;gap:6px;color:var(--navy);font-weight:600;font-size:13px;text-decoration:none">'
-    + '<i class="ti ti-external-link" style="font-size:14px" aria-hidden="true"></i>Abrir no Google Sheets</a>'
-    + '</div>';
-}
 
 // ── Modal ─────────────────────────────────────────────────────
 let ET=null, mphotos=[], mNewPhotos=[];
@@ -1024,12 +1053,6 @@ function showPage(n){
   document.getElementById('page-'+n).classList.add('active');
   document.getElementById('tab-'+n).classList.add('active');
   if(n==='relatorio') renderRelChecklist();
-  if(n==='config'){
-    document.getElementById('cfg-url').value=GAS_URL;
-    document.getElementById('cfg-sheet-id').value=SHEET_ID;
-    document.getElementById('cfg-user').value=CFG_USER;
-    updateSheetLinkArea();
-  }
 }
 
 function renderAll(){renderAndamento();renderDashboard();renderAlertas();renderFotos();}
@@ -1037,10 +1060,8 @@ function renderAll(){renderAndamento();renderDashboard();renderAlertas();renderF
 // ── Init ──────────────────────────────────────────────────────
 initD();
 renderAll();
-if(GAS_URL && SHEET_ID){
+if(checkSession()){
   loadFromSheets();
-} else {
-  setSyncBar('error','Configure a conexão em ⚙ Config');
 }
 </script>
 </body>
