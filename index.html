@@ -408,7 +408,7 @@ img{display:block}
 // ═══════════════════════════════════════════════════════════════
 //  CONFIGURAÇÃO FIXA — definida na hospedagem e no Drive
 // ═══════════════════════════════════════════════════════════════
-const GAS_URL  = 'https://script.google.com/macros/s/AKfycbw-XVhJU9scttgiaYO18smFJFMmaqNab1rVvWq_Vs-THnFaWWQggO9JdenS4lZ8EjaE/exec';
+const GAS_URL  = 'https://script.google.com/macros/s/AKfycby9jecHmxVjNl0ZUQk7jIup1m2GggBivtIeCnY1UgiwufLS6hEmbi7lNC4wMHvA2dEb/exec';
 
 // ── Login / Sessão ────────────────────────────────────────────
 // Sessão salva no localStorage (permanente no dispositivo)
@@ -482,21 +482,17 @@ const _sty=document.createElement('style');
 _sty.textContent='@keyframes spin{to{transform:rotate(360deg)}}';
 document.head.appendChild(_sty);
 
-// ── Dados estáticos (fallback / default) ─────────────────────
-const DEFAULT_ANDARES = ['Lobby','3° Andar','4° Andar','5° Andar','6° Andar','7° Andar','8° Andar','9° Andar','10° Andar','11° Andar','12° Andar','13° Andar','14° Andar','15° Andar','16° Andar','17° Andar','18° Andar','19° Andar','20° Andar','21° Andar','22° Andar','23° Andar','24° Andar','25° Andar','26° Andar','27° Andar','28° Andar','29° Andar'];
-const DEFAULT_ETAPAS  = ['Abertura da parede','Fechamento shaft','Fechamento parede','Fechamento lógica','Pintura'];
-const DEFAULT_DATAS   = {'Lobby':'2026-06-02','3° Andar':'2026-06-02','4° Andar':'2026-06-03','5° Andar':'2026-06-04','6° Andar':'2026-06-05','7° Andar':'2026-06-06','8° Andar':'2026-06-07','9° Andar':'2026-06-08','10° Andar':'2026-06-09','11° Andar':'2026-06-10','12° Andar':'2026-06-11','13° Andar':'2026-06-12','14° Andar':'2026-06-13','15° Andar':'2026-06-14','16° Andar':'2026-06-15','17° Andar':'2026-06-16','18° Andar':'2026-06-17','19° Andar':'2026-06-18','20° Andar':'2026-06-19','21° Andar':'2026-06-20','22° Andar':'2026-06-21','23° Andar':'2026-06-22','24° Andar':'2026-06-23','25° Andar':'2026-06-24','26° Andar':'2026-06-25','27° Andar':'2026-06-26','28° Andar':'2026-06-27','29° Andar':'2026-06-28'};
+// ── Dados dinâmicos — carregados da planilha ──────────────────
+// ICONS: mapa etapa→ícone Tabler; etapas não mapeadas usam ti-tool
 const ICONS = {'Abertura da parede':'ti-wall','Fechamento shaft':'ti-door','Fechamento parede':'ti-barrier-block','Fechamento lógica':'ti-plug-connected','Pintura':'ti-paint'};
 
-let ANDARES = [...DEFAULT_ANDARES];
-let ETAPAS  = [...DEFAULT_ETAPAS];
-let DATAS   = {...DEFAULT_DATAS};
-
-const today = new Date(); today.setHours(0,0,0,0);
-const todayStr = today.toISOString().slice(0,10);
-document.getElementById('today-label').textContent = today.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
+let ANDARES = [];
+let ETAPAS  = [];
+let DATAS   = {};
 
 // ── Estado local ──────────────────────────────────────────────
+const today    = new Date(); today.setHours(0,0,0,0);
+const todayStr = today.toISOString().slice(0,10);
 let D = {}; // { "Andar::Etapa": { status, dataConclusao, obs, fotos:[] } }
 
 function key(a,e){ return a+'::'+e; }
@@ -536,6 +532,37 @@ function fpct(a){
   let d=0;
   ETAPAS.forEach(e=>{ if(getS(a,e)==='concluido') d++; });
   return Math.round(d/ETAPAS.length*100);
+}
+
+// ── Utilitário: normaliza qualquer valor de data para "YYYY-MM-DD" ─
+// Aceita: string ISO, string DD/MM/YYYY, número serial do Sheets/Excel,
+//         objeto Date serializado, ou vazio (devolve todayStr como fallback)
+function parseDateStr(val){
+  if(!val && val !== 0) return todayStr;
+
+  // Número serial do Sheets/Excel (dias desde 30/12/1899)
+  if(typeof val === 'number'){
+    const d = new Date(Date.UTC(1899, 11, 30) + val * 86400000);
+    return d.toISOString().slice(0,10);
+  }
+
+  const s = String(val).trim();
+  if(!s) return todayStr;
+
+  // Já está no formato YYYY-MM-DD (possivelmente com T e fuso)
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+
+  // Formato DD/MM/YYYY
+  if(/^\d{2}\/\d{2}\/\d{4}/.test(s)){
+    const [d,m,y] = s.split('/');
+    return `${y}-${m}-${d}`;
+  }
+
+  // Tenta parse genérico como último recurso
+  const d = new Date(s);
+  if(!isNaN(d)) return d.toISOString().slice(0,10);
+
+  return todayStr; // fallback seguro
 }
 
 // ── Sync bar ──────────────────────────────────────────────────
@@ -580,8 +607,7 @@ async function loadFromSheets(forceNotify=false){
       ANDARES = andares.map(a => a.Andar);
       DATAS   = {};
       andares.forEach(a => {
-        // DataPrevista pode vir como "2026-06-02T00:00:00.000Z" ou "2026-06-02"
-        DATAS[a.Andar] = (a.DataPrevista || todayStr).split('T')[0];
+        DATAS[a.Andar] = parseDateStr(a.DataPrevista);
       });
     }
     if(etapas && etapas.length){
@@ -1057,8 +1083,12 @@ function showPage(n){
 function renderAll(){renderAndamento();renderDashboard();renderAlertas();renderFotos();}
 
 // ── Init ──────────────────────────────────────────────────────
-initD();
-renderAll();
+document.getElementById('today-label').textContent = today.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
+
+// Mostra estado vazio enquanto aguarda a planilha
+document.getElementById('and-list').innerHTML =
+  '<div class="empty"><i class="ti ti-cloud-download" style="color:var(--navy);opacity:.5" aria-hidden="true"></i><p>Carregando dados da planilha...</p></div>';
+
 if(checkSession()){
   loadFromSheets();
 }
