@@ -401,6 +401,29 @@ img{display:block}
       <button class="lbnav" id="lb-next" onclick="event.stopPropagation();lbNav(1)"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
     </div>
   </div>
+
+
+<!-- Modal de confirmação customizado -->
+<div class="mwrap" id="confirm-modal" onclick="closeConfirmModal(event)">
+  <div class="mbox" style="max-width:320px;margin:0 auto;border-radius:24px;" onclick="event.stopPropagation()">
+    <div class="mhandle"></div>
+    <div class="mtitle" id="confirm-title">
+      <i class="ti ti-alert-triangle" style="color:var(--orange)" aria-hidden="true"></i>
+      <span>Excluir foto</span>
+    </div>
+    <div id="confirm-message" style="font-size:14px;color:var(--text2);margin-bottom:20px;line-height:1.5">
+      Tem certeza que deseja excluir esta foto?
+    </div>
+    <div class="macts" style="margin-top:0">
+      <button class="btn" onclick="closeConfirmModal()">Cancelar</button>
+      <button class="btn" style="background:#B71C1C;border-color:#B71C1C;color:#fff" id="confirm-ok-btn">Excluir</button>
+    </div>
+  </div>
+</div>
+
+
+
+  
 </div>
 
 <script>
@@ -409,6 +432,7 @@ img{display:block}
 //  CONFIGURAÇÃO FIXA — definida na hospedagem e no Drive
 // ═══════════════════════════════════════════════════════════════
 const GAS_URL  = 'https://script.google.com/macros/s/AKfycbz8m7Mp3Yss_uly4b6ZcHVCf8KWN1TW87ldmZKUS-qQ6DNWFWuLjKMGfwUecL3Kh9jb/exec';
+
 
 // ── Login / Sessão ────────────────────────────────────────────
 // Sessão salva no localStorage (permanente no dispositivo)
@@ -794,6 +818,7 @@ function renderMP(){
   }).join('');
 }
 
+/*
 async function delMP(i){
   const {a,e}=ET;
   // Se a foto já estava salva no Sheets (não é nova), remove lá também
@@ -807,6 +832,43 @@ async function delMP(i){
   mphotos.splice(i,1);
   renderMP();
 }
+
+*/
+
+
+async function delMP(i){
+  const {a,e}=ET;
+  const isNew = (mphotos.length - mNewPhotos.length) <= i;
+  const isSaved = !isNew;
+  
+  const msg = isSaved 
+    ? '⚠️ <strong>Excluir foto permanentemente?</strong><br><br>Ela será removida do Google Drive e da planilha.<br><span style="color:#B71C1C">Esta ação não pode ser desfeita.</span>'
+    : 'Remover esta foto do envio pendente?';
+  
+  openConfirmModal(msg, async () => {
+    if(isSaved){
+      const remoteIdx = i;
+      try {
+        await deletePhotoRemote(a, e, remoteIdx);
+      } catch(ex) {
+        showToast('Erro: ' + ex.message, 'error');
+        return;
+      }
+    } else {
+      const idxInNew = i - (mphotos.length - mNewPhotos.length);
+      if(idxInNew >= 0) mNewPhotos.splice(idxInNew, 1);
+    }
+    mphotos.splice(i, 1);
+    renderMP();
+    showToast('Foto removida', 'ok');
+  });
+}
+
+
+
+
+
+
 
 function toggleCheck(a,e){
   const d=D[key(a,e)];
@@ -1092,6 +1154,34 @@ document.getElementById('and-list').innerHTML =
 if(checkSession()){
   loadFromSheets();
 }
+
+
+// ── Confirmação de exclusão de foto ──────────────────────────────────────────────────────
+let confirmCallback = null;
+
+function openConfirmModal(message, onConfirm) {
+  const modal = document.getElementById('confirm-modal');
+  const msgDiv = document.getElementById('confirm-message');
+  msgDiv.innerHTML = message;
+  confirmCallback = onConfirm;
+  modal.classList.add('open');
+}
+
+function closeConfirmModal(ev) {
+  if(!ev || ev.target === document.getElementById('confirm-modal') || ev.target.id === 'confirm-ok-btn') {
+    document.getElementById('confirm-modal').classList.remove('open');
+    confirmCallback = null;
+  }
+}
+
+// Disparar confirmação do botão OK
+document.getElementById('confirm-ok-btn') && document.getElementById('confirm-ok-btn').addEventListener('click', () => {
+  if(confirmCallback) confirmCallback();
+  closeConfirmModal();
+});
+
+
+
 </script>
 </body>
 </html>
