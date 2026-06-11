@@ -912,12 +912,7 @@ function renderAndamento(){
       html+=`<div class="erow">
         <div class="eico" style="background:${inf.bg}"><i class="ti ${ICONS[e]||'ti-tool'}" style="color:${inf.col}" aria-hidden="true"></i></div>
         <div class="einfo">
-          <div class="ename">${e}${pc>0?` <span class="pcbadge"><i class="ti ti-photo" style="font-size:9px" aria-hidden="true"></i> ${pc}</span>`:''}</div>
-
-
-          console.log('Andar:', a);
-          console.log('Data recebida:', DATAS[a]);
-          
+          <div class="ename">${e}${pc>0?` <span class="pcbadge"><i class="ti ti-photo" style="font-size:9px" aria-hidden="true"></i> ${pc}</span>`:''}</div>   
           <div class="edate">Prev: ${prevF}${isT?' <span class="todaytag">hoje</span>':''}${d.dataConclusao?' · Concl: '+new Date(d.dataConclusao+'T12:00:00').toLocaleDateString('pt-BR'):''}</div>
         </div>
         <div class="eacts">${th}<span class="sbadge ${inf.c}">${inf.l}</span>
@@ -1049,6 +1044,10 @@ function gerarRelatorio(){
     const rows=ETAPAS.map(e=>{
       const d=D[key(a,e)]||{};const s=getS(a,e);
       if(!incPen&&s==='pendente') return '';
+
+      console.log('Andar:', a);
+      console.log('Data recebida:', DATAS[a]);
+      
       const prevF=new Date((DATAS[a]||todayStr)+'T00:00:00').toLocaleDateString('pt-BR');
       const conclF=d.dataConclusao?new Date(d.dataConclusao+'T12:00:00').toLocaleDateString('pt-BR'):'—';
       const obsH=incObs&&d.obs?`<div style="background:#F8F9FA;border-left:3px solid #CFD8DC;padding:7px 11px;margin-top:7px;border-radius:0 4px 4px 0;font-size:12px;color:#455A64"><b>Obs:</b> ${d.obs}</div>`:'';
